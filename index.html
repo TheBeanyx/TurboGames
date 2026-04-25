@@ -2,37 +2,163 @@
 <html lang="hu">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bejelentkezés - JátékWeb</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
-        body { font-family: sans-serif; display: flex; justify-content: center; padding-top: 50px; background: #121212; color: white; }
-        .card { background: #1e1e1e; padding: 20px; border-radius: 8px; width: 300px; }
-        input { width: 100%; margin: 10px 0; padding: 8px; box-sizing: border-box; }
-        button { width: 100%; padding: 10px; cursor: pointer; margin-top: 10px; }
+        :root {
+            --primary-blue: #00d2ff;
+            --secondary-purple: #3a7bd5;
+            --bg-dark: #0f0f13;
+            --card-bg: #1a1a24;
+            --text-color: #ffffff;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Poppins', sans-serif;
+            background: radial-gradient(circle at center, #1a1a2e 0%, #0f0f13 100%);
+            color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .auth-container {
+            background: rgba(26, 26, 36, 0.8);
+            backdrop-filter: blur(10px);
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        h2 { font-weight: 600; margin-bottom: 30px; letter-spacing: 1px; }
+
+        .input-group { margin-bottom: 20px; text-align: left; }
+        
+        input {
+            width: 100%;
+            padding: 12px 15px;
+            background: #252533;
+            border: 1px solid #333;
+            border-radius: 8px;
+            color: white;
+            font-size: 14px;
+            transition: 0.3s;
+            box-sizing: border-box;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--primary-blue);
+            box-shadow: 0 0 8px rgba(0, 210, 255, 0.3);
+        }
+
+        .btn-main {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(45deg, var(--primary-blue), var(--secondary-purple));
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.3s;
+            margin-top: 10px;
+        }
+
+        .btn-main:hover { transform: translateY(-2px); opacity: 0.9; }
+
+        .divider {
+            margin: 25px 0;
+            display: flex;
+            align-items: center;
+            color: #666;
+            font-size: 12px;
+        }
+
+        .divider::before, .divider::after {
+            content: "";
+            flex: 1;
+            height: 1px;
+            background: #333;
+            margin: 0 10px;
+        }
+
+        .btn-google {
+            width: 100%;
+            padding: 10px;
+            background: white;
+            color: #333;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: 0.3s;
+        }
+
+        .btn-google img { width: 20px; }
+
+        .btn-google:hover { background: #f1f1f1; }
+
+        .footer-link { margin-top: 20px; font-size: 13px; color: #aaa; }
+        .footer-link a { color: var(--primary-blue); text-decoration: none; }
     </style>
 </head>
 <body>
-    <div class="card">
-        <h2>Bejelentkezés</h2>
+
+<div class="auth-container">
+    <h2>Üdvözlünk!</h2>
+    <div class="input-group">
         <input type="email" id="login-email" placeholder="E-mail cím">
-        <input type="password" id="login-password" placeholder="Jelszó">
-        <button id="btn-login">Belépés</button>
-        <p>Nincs fiókod? <a href="registration.html" style="color: #4da6ff;">Regisztrálj itt!</a></p>
     </div>
+    <div class="input-group">
+        <input type="password" id="login-password" placeholder="Jelszó">
+    </div>
+    <button id="btn-login" class="btn-main">Bejelentkezés</button>
 
-    <script type="module">
-        import { auth, signInWithEmailAndPassword } from './firebase-config.js';
+    <div class="divider">VAGY</div>
 
-        document.getElementById('btn-login').onclick = async () => {
-            const email = document.getElementById('login-email').value;
-            const password = document.getElementById('login-password').value;
-            try {
-                await signInWithEmailAndPassword(auth, email, password);
-                alert("Sikeres belépés! Üdv a játékok világában!");
-                // Itt irányíthatod tovább a főoldalra, ha kész: window.location.href = 'games.html';
-            } catch (error) {
-                alert("Hiba: " + error.message);
-            }
-        };
-    </script>
+    <button id="btn-google" class="btn-google">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_Logo.svg" alt="Google">
+        Folytatás Google-lel
+    </button>
+
+    <div class="footer-link">
+        Nincs még fiókod? <a href="registration.html">Regisztráció</a>
+    </div>
+</div>
+
+<script type="module">
+    import { auth, googleProvider, signInWithEmailAndPassword, signInWithPopup } from './firebase-config.js';
+
+    document.getElementById('btn-login').onclick = async () => {
+        const email = document.getElementById('login-email').value;
+        const password = document.getElementById('login-password').value;
+        try {
+            await signInWithEmailAndPassword(auth, email, password);
+            window.location.href = 'dashboard.html';
+        } catch (error) { alert("Hiba: " + error.message); }
+    };
+
+    document.getElementById('btn-google').onclick = async () => {
+        try {
+            await signInWithPopup(auth, googleProvider);
+            window.location.href = 'dashboard.html';
+        } catch (error) { alert("Hiba: " + error.message); }
+    };
+</script>
+
 </body>
 </html>
