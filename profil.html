@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <title>Profil - JátékWeb</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root { --bg: #0b0b0f; --accent: #00d2ff; --card: #16161e; --text: #fff; }
+        body { font-family: 'Poppins', sans-serif; background: var(--bg); color: var(--text); display: flex; }
+        aside { width: 240px; background: #101016; padding: 30px; height: 100vh; border-right: 1px solid #222; }
+        aside a { color: #aaa; text-decoration: none; display: block; padding: 10px; margin: 5px 0; border-radius: 8px; }
+        aside a.active { background: rgba(0,210,255,0.1); color: var(--accent); }
+        
+        main { flex: 1; padding: 50px; display: flex; justify-content: center; }
+        .profile-card { background: var(--card); padding: 40px; border-radius: 20px; width: 100%; max-width: 500px; text-align: center; }
+        .avatar-container { position: relative; width: 120px; height: 120px; margin: 0 auto 20px; }
+        .avatar-container img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; border: 3px solid var(--accent); }
+        
+        input[type="text"], input[type="file"] { width: 100%; padding: 12px; margin: 10px 0; background: #252533; border: 1px solid #333; color: white; border-radius: 8px; }
+        .btn-save { background: var(--accent); color: black; border: none; padding: 12px 30px; border-radius: 8px; font-weight: 600; cursor: pointer; width: 100%; }
+    </style>
+</head>
+<body>
+    <aside>
+        <h2>JátékWeb</h2>
+        <a href="dashboard.html">Főoldal</a>
+        <a href="search.html">Keresés</a>
+        <a href="progress.html">Haladás</a>
+        <a href="profil.html" class="active">Profil</a>
+    </aside>
+
+    <main>
+        <div class="profile-card">
+            <div class="avatar-container">
+                <img id="avatar-preview" src="https://via.placeholder.com/120" alt="Avatar">
+            </div>
+            <input type="file" id="avatar-input" accept="image/*">
+            <input type="text" id="display-name" placeholder="Becenév">
+            <button id="save-profile" class="btn-save">Beállítások mentése</button>
+        </div>
+    </main>
+
+    <script type="module">
+        import { auth, db, storage, onAuthStateChanged, doc, setDoc, getDoc, ref, uploadBytes, getDownloadURL } from './firebase-config.js';
+
+        onAuthStateChanged(auth, async (user) => {
+            if (!user) window.location.href = 'index.html';
+            
+            // Adatok betöltése Firestore-ból
+            const docRef = doc(db, "users", user.uid);
+            const docSnap = await getDoc(docRef);
+            if (docSnap.exists()) {
+                const data = docSnap.data();
+                document.getElementById('display-name').value = data.nickname || "";
+                document.getElementById('avatar-preview').src = data.avatarUrl || "https://via.placeholder.com/120";
+            }
+        });
+
+        document.getElementById('save-profile').onclick = async () => {
+            const user = auth.currentUser;
+            const nickname = document.getElementById('display-name').value;
+            const file = document.getElementById('avatar-input').files[0];
+            let avatarUrl = document.getElementById('avatar-preview').src;
+
+            if (file) {
+                const sRef = ref(storage, `avatars/${user.uid}`);
+                await uploadBytes(sRef, file);
+                avatarUrl = await getDownloadURL(sRef);
+            }
+
+            await setDoc(doc(db, "users", user.uid), {
+                nickname: nickname,
+                avatarUrl: avatarUrl
+            }, { merge: true });
+
+            alert("Profil frissítve!");
+            location.reload();
+        };
+    </script>
+</body>
+</html>
