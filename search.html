@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <title>Keresés - JátékWeb</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #121212; color: white; padding: 20px; }
+        .search-box { width: 100%; max-width: 500px; padding: 15px; border-radius: 25px; border: none; font-size: 16px; }
+        .results-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 20px; margin-top: 30px; }
+        .game-card { background: #1e1e1e; padding: 10px; border-radius: 8px; text-align: center; }
+        .game-card img { width: 100%; border-radius: 4px; }
+        .suggestions { background: #1e1e1e; max-width: 500px; border-radius: 0 0 8px 8px; position: absolute; width: 100%; z-index: 10; }
+        .suggestion-item { padding: 10px; cursor: pointer; border-bottom: 1px solid #333; }
+        .suggestion-item:hover { background: #333; }
+    </style>
+</head>
+<body>
+    <a href="dashboard.html" style="color: #4da6ff;">← Vissza a könyvtárhoz</a>
+    <center>
+        <h1>Keress több millió játék között</h1>
+        <div style="position: relative; display: inline-block; width: 100%; max-width: 500px;">
+            <input type="text" id="search-input" class="search-box" placeholder="Játék neve...">
+            <div id="suggestions" class="suggestions"></div>
+        </div>
+    </center>
+
+    <div id="results" class="results-grid"></div>
+
+    <script type="module">
+        import { games } from './list.games.js';
+
+        const searchInput = document.getElementById('search-input');
+        const suggestionsBox = document.getElementById('suggestions');
+        const resultsGrid = document.getElementById('results');
+
+        searchInput.oninput = () => {
+            const val = searchInput.value.toLowerCase();
+            suggestionsBox.innerHTML = '';
+            
+            if (val.length < 1) return;
+
+            const filtered = games.filter(g => g.name.toLowerCase().includes(val));
+            
+            filtered.forEach(game => {
+                const div = document.createElement('div');
+                div.className = 'suggestion-item';
+                div.innerText = game.name;
+                div.onclick = () => {
+                    searchInput.value = game.name;
+                    suggestionsBox.innerHTML = '';
+                    showResults(game.name);
+                };
+                suggestionsBox.appendChild(div);
+            });
+        };
+
+        function showResults(name) {
+            resultsGrid.innerHTML = '';
+            const filtered = games.filter(g => g.name.toLowerCase().includes(name.toLowerCase()));
+            
+            filtered.forEach(game => {
+                resultsGrid.innerHTML += `
+                    <div class="game-card">
+                        <img src="cover.image/${game.icon}" alt="${game.name}">
+                        <p>${game.name}</p>
+                    </div>
+                `;
+            });
+        }
+    </script>
+</body>
+</html>
