@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <title>Barátok - JátékWeb</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root { --bg: #0b0b0f; --accent: #00d2ff; --card: #16161e; --text: #fff; }
+        body { font-family: 'Poppins', sans-serif; background: var(--bg); color: var(--text); display: flex; margin: 0; }
+        aside { width: 240px; background: #101016; padding: 30px; height: 100vh; border-right: 1px solid #222; }
+        aside a { color: #aaa; text-decoration: none; display: block; padding: 10px; margin: 5px 0; border-radius: 8px; }
+        aside a.active { background: rgba(0,210,255,0.1); color: var(--accent); }
+        
+        main { flex: 1; padding: 40px; }
+        .search-bar { width: 100%; max-width: 500px; padding: 12px; border-radius: 25px; border: 1px solid #333; background: #1a1a24; color: white; margin-bottom: 30px; }
+        
+        .user-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px; }
+        .user-card { background: var(--card); padding: 20px; border-radius: 15px; display: flex; align-items: center; gap: 15px; border: 1px solid #222; }
+        .user-card img { width: 50px; height: 50px; border-radius: 50%; object-fit: cover; background: #333; }
+        .user-card button { background: var(--accent); border: none; padding: 5px 12px; border-radius: 5px; cursor: pointer; font-size: 12px; }
+    </style>
+</head>
+<body>
+    <aside>
+        <h2>JátékWeb</h2>
+        <a href="dashboard.html">Főoldal</a>
+        <a href="search.html">Keresés</a>
+        <a href="progress.html">Haladás</a>
+        <a href="friends.html" class="active">Barátok</a>
+        <a href="profil.html">Profil</a>
+    </aside>
+
+    <main>
+        <h1>Játékosok felfedezése</h1>
+        <input type="text" id="user-search" class="search-bar" placeholder="Keresés név alapján...">
+        <div id="user-list" class="user-grid"></div>
+    </main>
+
+    <script type="module">
+        import { auth, db, onAuthStateChanged } from './firebase-config.js';
+        import { collection, getDocs, query, where, addDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const userList = document.getElementById('user-list');
+
+        onAuthStateChanged(auth, async (currentUser) => {
+            if (!currentUser) window.location.href = 'index.html';
+            loadUsers("");
+        });
+
+        async function loadUsers(filter) {
+            userList.innerHTML = "Betöltés...";
+            const q = query(collection(db, "users"));
+            const querySnapshot = await getDocs(q);
+            userList.innerHTML = "";
+
+            querySnapshot.forEach((doc) => {
+                const data = doc.data();
+                // Saját magunkat ne mutassuk a listában
+                if (data.uid === auth.currentUser.uid) return;
+                
+                if (data.nickname?.toLowerCase().includes(filter.toLowerCase())) {
+                    const card = document.createElement('div');
+                    card.className = 'user-card';
+                    card.innerHTML = `
+                        <img src="${data.avatarUrl || 'https://via.placeholder.com/50'}" alt="Avatar">
+                        <div style="flex:1">
+                            <div style="font-weight:600">${data.nickname || 'Ismeretlen játékos'}</div>
+                        </div>
+                        <button onclick="addFriend('${data.uid}')">Jelölés</button>
+                    `;
+                    userList.appendChild(card);
+                }
+            });
+        }
+
+        document.getElementById('user-search').oninput = (e) => loadUsers(e.target.value);
+
+        window.addFriend = async (friendId) => {
+            try {
+                await addDoc(collection(db, "friendRequests"), {
+                    from: auth.currentUser.uid,
+                    to: friendId,
+                    status: 'pending'
+                });
+                alert("Barátfelkérés elküldve!");
+            } catch (e) { alert("Hiba: " + e.message); }
+        };
+    </script>
+</body>
+</html>
