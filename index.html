@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <title>Bejelentkezés - JátékWeb</title>
+    <style>
+        body { font-family: sans-serif; display: flex; justify-content: center; padding-top: 50px; background: #121212; color: white; }
+        .card { background: #1e1e1e; padding: 20px; border-radius: 8px; width: 300px; }
+        input { width: 100%; margin: 10px 0; padding: 8px; box-sizing: border-box; }
+        button { width: 100%; padding: 10px; cursor: pointer; margin-top: 10px; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h2>Bejelentkezés</h2>
+        <input type="email" id="login-email" placeholder="E-mail cím">
+        <input type="password" id="login-password" placeholder="Jelszó">
+        <button id="btn-login">Belépés</button>
+        <p>Nincs fiókod? <a href="registration.html" style="color: #4da6ff;">Regisztrálj itt!</a></p>
+    </div>
+
+    <script type="module">
+        import { auth, signInWithEmailAndPassword } from './firebase-config.js';
+
+        document.getElementById('btn-login').onclick = async () => {
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            try {
+                await signInWithEmailAndPassword(auth, email, password);
+                alert("Sikeres belépés! Üdv a játékok világában!");
+                // Itt irányíthatod tovább a főoldalra, ha kész: window.location.href = 'games.html';
+            } catch (error) {
+                alert("Hiba: " + error.message);
+            }
+        };
+    </script>
+</body>
+</html>
